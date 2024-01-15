@@ -3,11 +3,8 @@ package com.example.lab09v3.ui.home
 import com.example.lab09v3.AktualizacjaWiadomosci
 import com.example.lab09v3.OdpowiedzApi
 import com.example.lab09v3.Wiadomosc
-import com.google.gson.GsonBuilder
-import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Converter
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -26,24 +23,20 @@ interface ApiService {
     @PUT("shoutbox/message/{id}")
     suspend fun aktualizujWiadomosc(@Path("id") id: String, @Body zapytanie: AktualizacjaWiadomosci): Response<OdpowiedzApi>
 
+
     @DELETE("shoutbox/message/{id}")
-    suspend fun usunWiadomosc(@Path("id") id: String): Response<OdpowiedzApi>
+    suspend fun usunWiadomosc(@Path("id") id: String?): Response<OdpowiedzApi>
+
 
     companion object {
+        private const val BASE_URL = "https://tgryl.pl/"
+
         fun utworz(): ApiService {
-            val gson = GsonBuilder().setLenient().create()
-
-            val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-                .build()
-
             val retrofit = Retrofit.Builder()
-                .baseUrl("http://tgryl.pl/")
-                .addConverterFactory(GsonConverterFactory.create(gson))
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
                 .addConverterFactory(NullOnEmptyConverterFactory())
-                .client(okHttpClient)
                 .build()
-
 
             return retrofit.create(ApiService::class.java)
         }
@@ -74,5 +67,5 @@ class NullOnEmptyConverterFactory : Converter.Factory() {
         return Converter<Any?, RequestBody> { value -> delegate.convert(value) }
     }
 }
-data class Message(val content: String,val login: String)
+data class Message(val content: String, val login: String)
 

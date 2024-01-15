@@ -1,16 +1,22 @@
 package com.example.lab09v3
 
+import com.google.gson.annotations.SerializedName
+
 data class Wiadomosc(
-    val content: String,
-    val login: String,
-    val date: String,
-    val id: String
+    @SerializedName("content") var content: String,
+    @SerializedName("login") val login: String,
+    @SerializedName("date") val date: String,
+    @SerializedName("id") val id: String
 )
+
 
 data class AktualizacjaWiadomosci(
     val content: String,
-    val login: String
+    val login: String,
 )
+
+
+
 
 data class OdpowiedzApi(
     val messages: Any,
@@ -44,6 +50,7 @@ data class OdpowiedzApi(
             error ?: "Unknown error"
         }
     }
+
 
     companion object {
         fun create(messages: List<Wiadomosc>, isSuccessful: Boolean): OdpowiedzApi {

@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lab09v3.OdpowiedzApi
 import com.example.lab09v3.Wiadomosc
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -15,17 +16,10 @@ class HomeViewModel : ViewModel() {
 
     val apiService: ApiService = ApiService.create()
 
-    private val _currentMessage = MutableLiveData<String>()
-
-    fun updateCurrentMessage(message: String) {
-        _currentMessage.value = message
-    }
-
     fun fetchMessages() {
         viewModelScope.launch {
             try {
-                val response: Response<List<Wiadomosc>> =
-                    apiService.pobierzWiadomosci(ostatnie = 10)
+                val response: Response<List<Wiadomosc>> = apiService.pobierzWiadomosci(ostatnie = 10)
 
                 if (response.isSuccessful) {
                     try {
@@ -40,9 +34,11 @@ class HomeViewModel : ViewModel() {
                                 val date = message.date
                                 val content = message.content
 
-                                messagesList.add(Wiadomosc(content, login, date, ""))
-                            }
+                                val id = message.id
+                                val wiadomosc = Wiadomosc(content, login, date, id)
 
+                                messagesList.add(wiadomosc)
+                            }
                             _messages.value = messagesList
                         } else {
                             Log.e("NetworkError", "Response body is null")
@@ -75,6 +71,8 @@ class HomeViewModel : ViewModel() {
                         } else {
                             Log.d("NetworkResponse", "Empty response body")
                         }
+
+                        fetchMessages()
                     } else {
                         Log.e("NetworkError", "Error: ${response.code()} - ${response.message()}")
                     }
@@ -89,8 +87,20 @@ class HomeViewModel : ViewModel() {
             }
         }
     }
+    fun deleteMessage(messageId: String) {
+        viewModelScope.launch {
+            try {
 
+                val response: Response<OdpowiedzApi> = apiService.usunWiadomosc(messageId)
 
-
+                if (response.isSuccessful) {
+                    fetchMessages()
+                } else {
+                    Log.e("NetworkError", "Error: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: Exception) {
+                Log.e("NetworkError", "Exception: ${e.message}", e)
+            }
+        }
+    }
 }
-
